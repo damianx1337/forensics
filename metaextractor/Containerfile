@@ -1,0 +1,17 @@
+FROM docker.io/library/golang:latest AS builder
+
+WORKDIR /home/go/src
+COPY src/main.go .
+RUN go mod init metaextractor
+RUN go mod tidy && go build .
+
+FROM docker.io/library/debian:bullseye
+RUN apt-get update && apt-get dist-upgrade -y
+RUN useradd -m -d /home/noadm -s /bin/bash noadm
+COPY --from=builder /home/go/src/metaextractor /home/noadm
+
+WORKDIR /home/noadm
+
+USER noadm
+
+CMD ["/bin/bash"]
